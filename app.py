@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify, render_template
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
+from flask_cors import CORS
 from models import db, User, Meeting, Topic, Guest
 
 BASE_DIR=os.path.abspath(os.path.dirname(__file__))
@@ -90,7 +91,7 @@ def home():
 
 #         return jsonify({"msg":"Contact deleted"}), 200
 
-
+CORS(app)
 
 @app.route("/api/users", methods=['GET', 'POST']) 
 @app.route("/api/users/<int:id>", methods=['GET', 'PUT', 'DELETE'])
