@@ -255,7 +255,7 @@ def meetings(id=None):
 
     if request.method =='POST':
                
-        create_date = request.json.get('create_date', None) # FUNCION QUE DEVUELVA EL DIA DE HOY
+        create_date = request.json.get('create_date', None) ##### AGREGAR FUNCION AUTOMÁTICA QUE DEVUELVA DIA DE HOY
         meeting_date = request.json.get('meeting_date', None)
         meeting_hour = request.json.get('meeting_hour', None)
         project_name = request.json.get('project_name', None)
@@ -607,11 +607,7 @@ def guests(id=None):
         return jsonify({"msg":"guest deleted"}), 200
 
 
-
-
-
+      
 
 if __name__=="__main__":
     manager.run()
-
-

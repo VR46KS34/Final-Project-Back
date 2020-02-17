@@ -117,7 +117,7 @@ class Topic(db.Model):
             "care" : self.care,
             "tracking" : self.tracking,
             "duration" : self.duration,
-            "meeting_id" : self.meeting_id,     
+            #"meeting_id" : self.meeting_id,     
             #"meeting" : self.meeting.serialize()   
         }
 
@@ -140,6 +140,6 @@ class Guest(db.Model):
             "fullname" : self.fullname,
             "email" : self.email,
             "rol" : self.rol,   
-            "meeting_id" : self.meeting_id,                    
+            #"meeting_id" : self.meeting_id,                    
             #"meeting" : self.meeting.serialize()
         }
