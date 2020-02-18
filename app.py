@@ -5,6 +5,8 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_cors import CORS
 from models import db, User, Meeting, Topic, Guest
 
+from flask_mail import Mail, Message
+
 BASE_DIR=os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
@@ -12,6 +14,16 @@ app.config['DEBUG'] = True
 app.config['ENV'] = 'development'
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///'+os.path.join(BASE_DIR, 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+
+app.config.update(
+        DEBUG=True,        
+        MAIL_SERVER='smtp.gmail.com',
+        MAIL_PORT=465,
+        MAIL_USE_SSL=True,
+        MAIL_USERNAME = 'blueorkasta@gmail.com',
+        MAIL_PASSWORD = 'ajnqiqkumxicaccc'
+        )
+mail = Mail(app)
 
 db.init_app(app)
 
@@ -255,7 +267,7 @@ def meetings(id=None):
 
     if request.method =='POST':
                
-        create_date = request.json.get('create_date', None) ##### AGREGAR FUNCION AUTOMÁTICA QUE DEVUELVA DIA DE HOY
+        create_date = request.json.get('create_date', None)
         meeting_date = request.json.get('meeting_date', None)
         meeting_hour = request.json.get('meeting_hour', None)
         project_name = request.json.get('project_name', None)
@@ -607,7 +619,41 @@ def guests(id=None):
         return jsonify({"msg":"guest deleted"}), 200
 
 
-      
+
+@app.route('/api/sendMail', methods=['GET', 'POST']) 
+def send_mail(): 
+
+    if request.method =='POST':            
+        title = request.json.get('title', None)
+        date = request.json.get('meeting_date', None)
+        topics = request.json.get('topics', None)
+        recipients = request.json.get('guest_mails', None)      
+        
+        if not title:
+            return jsonify({"msg": "title is required"}), 422
+        if not recipients:
+            return jsonify({"msg": "recipients are required"}), 422
+        
+        try:
+            msg = Message('Acta de reunión "'+ title+'"'+" realizada el "+("/".join(reversed(date.split("-")))),
+                sender = "blueorkasta@gmail.com",
+                recipients=recipients)
+            #msg.body = topics                
+            
+            html_message=""
+            for i in range(len(topics)):              
+                html_message += "<h1>Tema "+str(i+1)+": "+ topics[i]["title"] +"</h1>"+"<h4>Prioridad: "+topics[i]["priority"]+"<h4>Fecha de Seguimento: "+topics[i]["tracking"]+"<h4>Responsable: "+topics[i]["care"]+"</h4>"+"</h4>"+"<h4>Notas: "+topics[i]["notes"]+"</h4> <br>"
+            
+            msg.html = html_message
+            mail.send(msg)
+            
+            return jsonify({"msg": "Mail sent"}), 200
+
+        except Exception as e:
+            return str(e)
+
+
+
 
 if __name__=="__main__":
     manager.run()
