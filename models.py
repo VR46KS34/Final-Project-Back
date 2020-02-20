@@ -1,4 +1,5 @@
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy 
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -48,7 +49,7 @@ class User(db.Model):
 class Meeting(db.Model):
     __tablename__="meetings"
     id = db.Column(db.Integer, primary_key=True)
-    create_date = db.Column(db.String(50),nullable=False)
+    create_date = db.Column(db.DateTime, default= datetime.now())
     meeting_date = db.Column(db.String(50),nullable=False)
     meeting_hour = db.Column(db.String(50),nullable=False)
     project_name = db.Column(db.String(50))

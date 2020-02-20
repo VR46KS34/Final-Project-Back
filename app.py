@@ -5,6 +5,8 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_cors import CORS
 from models import db, User, Meeting, Topic, Guest
 
+from flask_mail import Mail, Message
+
 BASE_DIR=os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
@@ -12,6 +14,16 @@ app.config['DEBUG'] = True
 app.config['ENV'] = 'development'
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///'+os.path.join(BASE_DIR, 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+
+app.config.update(
+        DEBUG=True,        
+        MAIL_SERVER='smtp.gmail.com',
+        MAIL_PORT=465,
+        MAIL_USE_SSL=True,
+        MAIL_USERNAME = 'blueorkasta@gmail.com',
+        MAIL_PASSWORD = 'ajnqiqkumxicaccc'
+        )
+mail = Mail(app)
 
 db.init_app(app)
 
@@ -259,7 +271,7 @@ def meetings(id=None):
 
     if request.method =='POST':
                
-        create_date = request.json.get('create_date', None) ##### AGREGAR FUNCION AUTOMÁTICA QUE DEVUELVA DIA DE HOY
+        create_date = request.json.get('create_date', None)
         meeting_date = request.json.get('meeting_date', None)
         meeting_hour = request.json.get('meeting_hour', None)
         project_name = request.json.get('project_name', None)
@@ -611,6 +623,7 @@ def guests(id=None):
         return jsonify({"msg":"guest deleted"}), 200
 
 
+<<<<<<< HEAD
 @app.route("/user/login", methods=['POST'])
 def login():
     email = request.json.get('email', None)
@@ -642,6 +655,93 @@ def login():
 
 
       
+=======
+
+@app.route('/api/sendInvitation', methods=['GET', 'POST']) 
+def send_invitation(): 
+
+    if request.method =='POST':   
+        user = request.json.get('user', None)        
+        title = request.json.get('title', None)
+        #description = request.json.get('description', None)
+        date = request.json.get('meeting_date', None)
+        hour = request.json.get('meeting_hour', None)
+        place = request.json.get('place', None)
+        topics = request.json.get('topics', None)
+        recipients = request.json.get('guest_mails', None)      
+        
+        if not title:
+            return jsonify({"msg": "title is required"}), 422
+        if not date:
+            return jsonify({"msg": "date is required"}), 422
+        if not hour:
+            return jsonify({"msg": "hour is required"}), 422
+        if not place:
+            return jsonify({"msg": "place is required"}), 422
+        if not recipients:
+            return jsonify({"msg": "recipients are required"}), 422
+        
+        try:
+            msg = Message('Se cita a reunión "'+title+'"'+" para el día "+("/".join(reversed(date.split("-"))))+" a las "+hour+" hrs.",
+                sender = "blueorkasta@gmail.com",
+                recipients=recipients)
+            #msg.body = topics                
+            
+            html_message="<h2>Estimad@ invitad@:</h2><br>"+"<h2>Los temas a revisar y sus tiempos estimados serán los siguientes:</h2>"
+            for i in range(len(topics)):              
+                html_message += "<h3>Tema "+str(i+1)+": "+ topics[i]["title"] +". Tiempo: "+str(topics[i]["duration"])+" minutos.</h3>"
+           
+            total_duration=0
+            for j in range(len(topics)):              
+                total_duration += int(topics[j]["duration"])
+
+            html_message+="<br><h2>La reunión será realizada en "+place+" en el horario indicado en el asunto y tendrá una duración total estimada de "+str(total_duration)+" minutos.</h2><h2>Se solicita puntualidad.</h2>"+"<h2>Atentamente,</h2><br>"+"<h2>"+user+"</h2>"
+            
+            msg.html = html_message
+            mail.send(msg)
+            
+            return jsonify({"msg": "Mail sent"}), 200
+
+        except Exception as e:
+            return str(e)
+
+
+
+@app.route('/api/sendMeeting', methods=['GET', 'POST']) 
+def send_meeting(): 
+
+    if request.method =='POST':            
+        title = request.json.get('title', None)
+        date = request.json.get('meeting_date', None)
+        topics = request.json.get('topics', None)
+        recipients = request.json.get('guest_mails', None)      
+        
+        if not title:
+            return jsonify({"msg": "title is required"}), 422
+        if not recipients:
+            return jsonify({"msg": "recipients are required"}), 422
+        
+        try:
+            msg = Message('Acta de reunión "'+ title+'"'+" realizada el "+("/".join(reversed(date.split("-")))),
+                sender = "blueorkasta@gmail.com",
+                recipients=recipients)
+            #msg.body = topics                
+            
+            html_message=""
+            for i in range(len(topics)):              
+                html_message += "<h1>Tema "+str(i+1)+": "+ topics[i]["title"] +"</h1>"+"<h4>Prioridad: "+topics[i]["priority"]+"</h4>"+"<h4>Fecha de Seguimento: "+topics[i]["tracking"]+"</h4>"+"<h4>Responsable: "+topics[i]["care"]+"</h4>"+"<h4>Notas: "+topics[i]["notes"]+"</h4> <br>"
+            
+            msg.html = html_message
+            mail.send(msg)
+            
+            return jsonify({"msg": "Mail sent"}), 200
+
+        except Exception as e:
+            return str(e)
+
+
+
+>>>>>>> e34a89c4c5e44c602ac5a980a212f25c30d697df
 
 if __name__=="__main__":
     manager.run()
