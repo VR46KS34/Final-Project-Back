@@ -623,7 +623,6 @@ def guests(id=None):
         return jsonify({"msg":"guest deleted"}), 200
 
 
-<<<<<<< HEAD
 @app.route("/user/login", methods=['POST'])
 def login():
     email = request.json.get('email', None)
@@ -654,9 +653,7 @@ def login():
         return jsonify({"msg": "Bad request method"}), 401
 
 
-      
-=======
-
+    
 @app.route('/api/sendInvitation', methods=['GET', 'POST']) 
 def send_invitation(): 
 
@@ -740,8 +737,6 @@ def send_meeting():
             return str(e)
 
 
-
->>>>>>> e34a89c4c5e44c602ac5a980a212f25c30d697df
 
 if __name__=="__main__":
     manager.run()
