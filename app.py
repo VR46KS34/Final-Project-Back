@@ -656,7 +656,7 @@ def send_invitation():
            
             total_duration=0
             for j in range(len(topics)):              
-                total_duration += topics[j]["duration"]
+                total_duration += int(topics[j]["duration"])
 
             html_message+="<br><h2>La reunión será realizada en "+place+" en el horario indicado en el asunto y tendrá una duración total estimada de "+str(total_duration)+" minutos.</h2><h2>Se solicita puntualidad.</h2>"+"<h2>Atentamente,</h2><br>"+"<h2>"+user+"</h2>"
             
