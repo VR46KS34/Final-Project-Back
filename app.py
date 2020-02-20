@@ -122,6 +122,10 @@ def users(id=None):
         if not password:
             return jsonify({"msg": "password is required"}), 422 
 
+        validate = User.query.filter_by(email=email).first()
+        if validate:
+            return jsonify({"msg": "Mail already used"}), 401 
+
         user = User()
         user.fullname = fullname
         user.email = email
@@ -225,7 +229,7 @@ def users(id=None):
         user = User.query.get(id)
 
         if not user:                
-                return jsonify({"msg":"user not found"}), 404
+            return jsonify({"msg":"user not found"}), 404
 
         db.session.delete(user)
         db.session.commit()           
@@ -605,6 +609,36 @@ def guests(id=None):
         db.session.commit()
 
         return jsonify({"msg":"guest deleted"}), 200
+
+
+@app.route("/user/login", methods=['POST'])
+def login():
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+
+    if request.method =='POST':
+        if not email:
+            return jsonify({"msg": "Email is required"}), 401
+
+        if not password:
+            return jsonify({"msg": "Password is required"}), 401
+        
+        
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            return jsonify({"msg": "user was not found"}), 404
+        
+        if password != user.password:
+            return jsonify({"msg": "Wrong password"}), 401
+        
+        if password == user.password:
+            return jsonify(user.serialize()), 200
+        else:
+            return jsonify({"msg": "Something happened"}), 500
+
+    else:
+        return jsonify({"msg": "Bad request method"}), 401
 
 
       
