@@ -125,59 +125,48 @@ def users(id=None):
         fullname = request.json.get('fullname', None)
         email = request.json.get('email', None)
         password = request.json.get('password', None)
+        repeated_pass = request.json.get('repeated_pass', None)
         #meetings = request.json.get('meetings', None)
-
+        if mail is not None:
+            validate = User.query.filter_by(email=email).first()
+            if validate:
+                return jsonify({
+                    "status": "Alerta",
+                    "msg": "Mail Ya en uso"}), 401 
         if not fullname:
-            return jsonify({"msg": "fullname is required"}), 422
+            return jsonify({
+                "status": "Alerta",
+                "msg": "El nombre es requerido"}), 422
         if not email:
-            return jsonify({"msg": "email is required"}), 422  
+            return jsonify({
+                "status": "Alerta",
+                "msg": "email es requerido"}), 422  
         if not password:
-            return jsonify({"msg": "password is required"}), 422 
-
-        validate = User.query.filter_by(email=email).first()
-        if validate:
-            return jsonify({"msg": "Mail already used"}), 401 
-
+            return jsonify({
+                "status": "Alerta",
+                "msg": "contraseña es requerida"}), 422 
+        if not repeated_pass:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "segunda contraseña es requerida"}), 422 
+        if password != repeated_pass:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Las contraseñas no coinciden"
+            }),401
         user = User()
         user.fullname = fullname
         user.email = email
         user.password = password
-
         db.session.add(user)
         db.session.commit()
-
-        # if meetings:
-        #     if len(meetings) > 1:
-        #         for x in range(len(meetings)):
-        #             met = Meeting()
-        #             met.create_date = meetings[x]["create_date"]
-        #             met.meeting_date = meetings[x]["meeting_date"]
-        #             met.meeting_hour = meetings[x]["meeting_hour"]
-        #             met.project_name = meetings[x]["project_name"]
-        #             met.title = meetings[x]["title"]
-        #             met.topics = meetings[x]["topics"]
-        #             met.guests = meetings[x]["guests"]
-        #             met.place = meetings[x]["place"]
-        #             met.description = meetings[x]["description"]
-        #             met.user_id = user.id
-        #             db.session.add(met)
-        #     else:
-        #         met = Address()
-        #         met.create_date = meetings[0]["create_date"]
-        #         met.meeting_date = meetings[0]["meeting_date"]
-        #         met.meeting_hour = meetings[0]["meeting_hour"]
-        #         met.project_name = meetings[0]["project_name"]
-        #         met.title = meetings[0]["title"]
-        #         met.topics = meetings[0]["topics"]
-        #         met.guests = meetings[0]["guests"]
-        #         met.place = meetings[0]["place"]
-        #         met.description = meetings[0]["description"]
-        #         met.user_id = user.id                
-        #         db.session.add(met)
-            
-        #     db.session.commit()
-
-        return jsonify(user.serialize()), 201
+        objeto = {
+                "status": "Success",
+                "msg": "Registro Correcto"
+            }
+        usuario = user.serialize()
+        respuesta = {**objeto, **usuario}
+        return jsonify(respuesta), 201
 
     if request.method =='PUT':
 
@@ -204,37 +193,6 @@ def users(id=None):
 
         db.session.commit()
 
-        # if meetings:
-        #     if len(meetings) > 0:
-        #         for x in range(len(meetings)):
-        #             if meetings[x]["id"]:
-        #                 met = Meeting.query.get(meetings[x]["id"])                                                
-        #                 met.create_date = meetings[x]["create_date"]
-        #                 met.meeting_date = meetings[x]["meeting_date"]
-        #                 met.meeting_hour = meetings[x]["meeting_hour"]
-        #                 met.project_name = meetings[x]["project_name"]
-        #                 met.title = meetings[x]["title"]
-        #                 met.topics = meetings[x]["topics"]
-        #                 met.guests = meetings[x]["guests"]
-        #                 met.place = meetings[x]["place"]
-        #                 met.description = meetings[x]["description"]
-        #                 met.user_id = user.id
-        #             else:
-        #                 met = Metting()
-        #                 met.create_date = meetings[x]["create_date"]
-        #                 met.meeting_date = meetings[x]["meeting_date"]
-        #                 met.meeting_hour = meetings[x]["meeting_hour"]
-        #                 met.project_name = meetings[x]["project_name"]
-        #                 met.title = meetings[x]["title"]
-        #                 met.topics = meetings[x]["topics"]
-        #                 met.guests = meetings[x]["guests"]
-        #                 met.place = meetings[x]["place"]
-        #                 met.description = meetings[x]["description"]
-        #                 met.user_id = user.id               
-        #                 db.session.add(met)
-
-        #     db.session.commit()
-
         return jsonify(user.serialize()), 200
 
     if request.method =='DELETE':
@@ -246,8 +204,45 @@ def users(id=None):
         db.session.delete(user)
         db.session.commit()           
 
-        return jsonify({"msg":"user and their meetings deleted"}), 200
+        return jsonify({"msg":"user deleted"}), 200
 
+
+@app.route("/user/login", methods=['POST'])
+def login():
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+    if request.method =='POST':
+        if not email:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Email es requerido"}), 401
+        if not password:
+            return jsonify({
+                "status": "Alerta", 
+                "msg": "Contraseña es requerida"}), 401
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "El usuario no existe"}), 404
+        if password != user.password:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Contraseña incorrecta"}), 401
+        if password == user.password:
+            objeto = {
+                "status": "Success",
+                "msg": "Autentificacion Correcta"
+            }
+            usuario = user.serialize()
+            respuesta = {**objeto, **usuario}
+            return jsonify(respuesta), 200
+        else:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Something happened"}), 500
+    else:
+        return jsonify({"msg": "Bad request method"}), 401
 
 
 @app.route("/api/meetings", methods=['GET', 'POST']) 
@@ -281,6 +276,7 @@ def meetings(id=None):
         place = request.json.get('place', None)
         description = request.json.get('description', None) 
         target = request.json.get('target', None) 
+        done = request.json.get('done', None) 
         user_id = request.json.get('user_id', None)
 
         if not meeting_date:
@@ -303,6 +299,7 @@ def meetings(id=None):
         meeting.place = place
         meeting.description = description
         meeting.target = target
+        meeting.done = done
         meeting.user_id = user_id
 
         db.session.add(meeting)
@@ -368,6 +365,7 @@ def meetings(id=None):
         place = request.json.get('place', None)
         description = request.json.get('description', None) 
         target = request.json.get('target', None) 
+        done = request.json.get('done', None) 
         user_id = request.json.get('user_id', None)
 
         # if not meeting_date:
@@ -394,6 +392,7 @@ def meetings(id=None):
         meeting.place = place
         meeting.description = description
         meeting.target = target
+        meeting.done = done
         meeting.user_id = user_id
 
         db.session.commit()
@@ -549,7 +548,6 @@ def topics(id=None):
 
 
 
-
 @app.route("/api/guests", methods=['GET', 'POST']) 
 @app.route("/api/guests/<int:id>", methods=['GET', 'PUT', 'DELETE'])
 
@@ -623,34 +621,7 @@ def guests(id=None):
         return jsonify({"msg":"guest deleted"}), 200
 
 
-@app.route("/user/login", methods=['POST'])
-def login():
-    email = request.json.get('email', None)
-    password = request.json.get('password', None)
 
-    if request.method =='POST':
-        if not email:
-            return jsonify({"msg": "Email is required"}), 401
-
-        if not password:
-            return jsonify({"msg": "Password is required"}), 401
-        
-        
-        user = User.query.filter_by(email=email).first()
-
-        if not user:
-            return jsonify({"msg": "user was not found"}), 404
-        
-        if password != user.password:
-            return jsonify({"msg": "Wrong password"}), 401
-        
-        if password == user.password:
-            return jsonify(user.serialize()), 200
-        else:
-            return jsonify({"msg": "Something happened"}), 500
-
-    else:
-        return jsonify({"msg": "Bad request method"}), 401
 
 
     
@@ -684,7 +655,7 @@ def send_invitation():
                 recipients=recipients)
             #msg.body = topics                
             
-            html_message="<h2>Estimad@ invitad@:</h2><br>"+"<h2>Los temas a revisar y sus tiempos estimados serán los siguientes:</h2>"
+            html_message="<h2>Estimad@:</h2><br>"+"<h2>Los temas a revisar y sus tiempos estimados serán los siguientes:</h2>"
             for i in range(len(topics)):              
                 html_message += "<h3>Tema "+str(i+1)+": "+ topics[i]["title"] +". Tiempo: "+str(topics[i]["duration"])+" minutos.</h3>"
            
@@ -707,7 +678,8 @@ def send_invitation():
 @app.route('/api/sendMeeting', methods=['GET', 'POST']) 
 def send_meeting(): 
 
-    if request.method =='POST':            
+    if request.method =='POST':    
+        user = request.json.get('user', None)
         title = request.json.get('title', None)
         date = request.json.get('meeting_date', None)
         topics = request.json.get('topics', None)
@@ -724,10 +696,11 @@ def send_meeting():
                 recipients=recipients)
             #msg.body = topics                
             
-            html_message=""
+            html_message="<h2>Estimad@:</h2><h2>A continuación se presenta una síntesis de los temas y acuerdos tomados durante la reunión:</h2>"
             for i in range(len(topics)):              
-                html_message += "<h1>Tema "+str(i+1)+": "+ topics[i]["title"] +"</h1>"+"<h4>Prioridad: "+topics[i]["priority"]+"</h4>"+"<h4>Fecha de Seguimento: "+topics[i]["tracking"]+"</h4>"+"<h4>Responsable: "+topics[i]["care"]+"</h4>"+"<h4>Notas: "+topics[i]["notes"]+"</h4> <br>"
-            
+                html_message += "<h2>Tema "+str(i+1)+": "+ topics[i]["title"] +"</h2>"+"<h4>Prioridad: "+topics[i]["priority"]+"</h4>"+"<h4>Fecha de Seguimento: "+topics[i]["tracking"]+"</h4>"+"<h4>Responsable: "+topics[i]["care"]+"</h4>"+"<h4>Notas: "+topics[i]["notes"]+"</h4><br>"
+            html_message += "<h2>Atentamente,</h2><br>"+"<h2>"+user+"</h2>"
+
             msg.html = html_message
             mail.send(msg)
             
