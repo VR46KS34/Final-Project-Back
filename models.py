@@ -59,6 +59,7 @@ class Meeting(db.Model):
     place = db.Column(db.String(50))
     description = db.Column(db.String(50))
     target = db.Column(db.String(50))
+    done = db.Column(db.String(50))
 
     user_id = db.Column(db.Integer,db.ForeignKey('users.id'),nullable=False)
     user = db.relationship(User)
@@ -88,6 +89,7 @@ class Meeting(db.Model):
             "place" : self.place,
             "description" : self.description,
             "target" : self.target,
+            "done": self.done,
             "user_id" : self.user_id, 
             #"user" : self.user.serialize()
         }
