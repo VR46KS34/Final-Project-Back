@@ -125,19 +125,39 @@ def users(id=None):
         fullname = request.json.get('fullname', None)
         email = request.json.get('email', None)
         password = request.json.get('password', None)
+        repeated_pass = request.json.get('repeated_pass', None)
         #meetings = request.json.get('meetings', None)
 
+        if mail is not None:
+            validate = User.query.filter_by(email=email).first()
+            if validate:
+                return jsonify({
+                    "status": "Alerta",
+                    "msg": "Mail already used"}), 401 
+
         if not fullname:
-            return jsonify({"msg": "fullname is required"}), 422
+            return jsonify({
+                "status": "Alerta",
+                "msg": "fullname is required"}), 422
         if not email:
-            return jsonify({"msg": "email is required"}), 422  
+            return jsonify({
+                "status": "Alerta",
+                "msg": "email is required"}), 422  
         if not password:
-            return jsonify({"msg": "password is required"}), 422 
+            return jsonify({
+                "status": "Alerta",
+                "msg": "password is required"}), 422 
+        
+        if not repeated_pass:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Second password is required"}), 422 
 
-        validate = User.query.filter_by(email=email).first()
-        if validate:
-            return jsonify({"msg": "Mail already used"}), 401 
-
+        if password != repeated_pass:
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Las contraseñas no coinciden"
+            }),401
         user = User()
         user.fullname = fullname
         user.email = email
@@ -176,8 +196,14 @@ def users(id=None):
         #         db.session.add(met)
             
         #     db.session.commit()
+        objeto = {
+                "status": "Succes",
+                "msg": "Registro Correcto"
+            }
+        usuario = user.serialize()
+        respuesta = {**objeto, **usuario}
 
-        return jsonify(user.serialize()), 201
+        return jsonify(respuesta), 201
 
     if request.method =='PUT':
 
@@ -630,24 +656,40 @@ def login():
 
     if request.method =='POST':
         if not email:
-            return jsonify({"msg": "Email is required"}), 401
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Email is required"}), 401
 
         if not password:
-            return jsonify({"msg": "Password is required"}), 401
+            return jsonify({
+                "status": "Alerta", 
+                "msg": "Password is required"}), 401
         
         
         user = User.query.filter_by(email=email).first()
 
         if not user:
-            return jsonify({"msg": "user was not found"}), 404
+            return jsonify({
+                "status": "Alerta",
+                "msg": "El usuario no existe"}), 404
         
         if password != user.password:
-            return jsonify({"msg": "Wrong password"}), 401
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Contraseña incorrecta"}), 401
         
         if password == user.password:
-            return jsonify(user.serialize()), 200
+            objeto = {
+                "status": "Succes",
+                "msg": "Autentificacion Correcta"
+            }
+            usuario = user.serialize()
+            respuesta = {**objeto, **usuario}
+            return jsonify(respuesta), 200
         else:
-            return jsonify({"msg": "Something happened"}), 500
+            return jsonify({
+                "status": "Alerta",
+                "msg": "Something happened"}), 500
 
     else:
         return jsonify({"msg": "Bad request method"}), 401
