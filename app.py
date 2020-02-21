@@ -263,10 +263,9 @@ def meetings(id=None):
             return jsonify(meetings), 200
 
 
-
     if request.method =='POST':
                
-        create_date = request.json.get('create_date', None)
+        #create_date = request.json.get('create_date', None)
         meeting_date = request.json.get('meeting_date', None)
         meeting_hour = request.json.get('meeting_hour', None)
         project_name = request.json.get('project_name', None)
@@ -291,7 +290,7 @@ def meetings(id=None):
             return jsonify({"msg": "place is required"}), 422 
 
         meeting = Meeting()
-        meeting.create_date = create_date
+        #meeting.create_date = create_date
         meeting.meeting_date = meeting_date
         meeting.meeting_hour = meeting_hour
         meeting.project_name = project_name
@@ -355,7 +354,7 @@ def meetings(id=None):
 
     if request.method =='PUT':
 
-        create_date = request.json.get('create_date', None)
+        #create_date = request.json.get('create_date', None)
         meeting_date = request.json.get('meeting_date', None)
         meeting_hour = request.json.get('meeting_hour', None)
         project_name = request.json.get('project_name', None)
@@ -384,7 +383,7 @@ def meetings(id=None):
         if not meeting:                
                 return jsonify({"msg":"meeting not found"}), 404
 
-        meeting.create_date = create_date
+        #meeting.create_date = create_date
         meeting.meeting_date = meeting_date
         meeting.meeting_hour = meeting_hour
         meeting.project_name = project_name
@@ -539,7 +538,7 @@ def topics(id=None):
         topic = Topic.query.get(id)
 
         if not topic:                
-                return jsonify({"msg":"topic not found"}), 404
+            return jsonify({"msg":"topic not found"}), 404
 
         db.session.delete(topic)
         db.session.commit()
